@@ -1,0 +1,1 @@
+INSERT IGNORE INTO users (name, email, password_hash, role, theme_preference) VALUES ('Manikanta', 'manikantareddemoni@gmail.com', '$2a$10$tN6uOA..QNjJ0T.CKDPdLO2NJpaOqW1gnX8ROWIa81PK6nFafMlEm', 'admin', 'dark');
