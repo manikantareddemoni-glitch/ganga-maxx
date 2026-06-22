@@ -28,7 +28,12 @@ const io = new Server(server, {
 registerSocket(io);
 
 app.use(helmet());
-app.use(cors({ origin: env.clientOrigin, credentials: true }));
+app.use(cors({ 
+  origin: function (origin, callback) {
+    callback(null, true);
+  }, 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
