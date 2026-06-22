@@ -9,7 +9,7 @@ export function errorHandler(error, req, res, next) {
   console.error('[Global Error Handler]:', error);
   const status = error.status || 500;
   res.status(status).json({
-    message: status === 500 ? 'Something went wrong.' : error.message,
-    details: process.env.NODE_ENV === 'production' ? undefined : error.details
+    message: error.message,
+    details: error.stack
   });
 }
