@@ -11,8 +11,9 @@ const pool = new Pool({
 
 export async function query(sql, params = []) {
   // Convert MySQL '?' to PostgreSQL '$1', '$2', etc.
+  // Also replace double quotes with single quotes to fix Postgres syntax errors for string literals
   let index = 1;
-  const pgSql = sql.replace(/\?/g, () => `$${index++}`);
+  const pgSql = sql.replace(/\?/g, () => `$${index++}`).replace(/"/g, "'");
   
   try {
     // Determine if query is an INSERT/UPDATE/DELETE
