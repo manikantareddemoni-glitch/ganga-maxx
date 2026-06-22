@@ -41,7 +41,7 @@ export function VoiceAssistant() {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      window.speechSynthesis.cancel();
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
@@ -53,7 +53,7 @@ export function VoiceAssistant() {
       setTranscript('');
       recognitionRef.current?.start();
       setIsListening(true);
-      window.speechSynthesis.cancel();
+      window.speechSynthesis?.cancel();
     }
   };
 
@@ -73,11 +73,12 @@ export function VoiceAssistant() {
   };
 
   const speak = (text) => {
-    window.speechSynthesis.cancel();
+    window.speechSynthesis?.cancel();
+    if (!window.SpeechSynthesisUtterance) return;
     const utterance = new SpeechSynthesisUtterance(text);
     
     // Try to find a good female English voice if available
-    const voices = window.speechSynthesis.getVoices();
+    const voices = window.speechSynthesis?.getVoices() || [];
     const goodVoice = voices.find(v => v.name.includes('Google UK English Female') || v.name.includes('Samantha') || (v.lang.includes('en') && v.name.includes('Female')));
     if (goodVoice) utterance.voice = goodVoice;
     
@@ -87,7 +88,7 @@ export function VoiceAssistant() {
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis?.speak(utterance);
   };
 
   return (
@@ -114,7 +115,7 @@ export function VoiceAssistant() {
                   <Sparkles size={18} className="text-brand-200" />
                   <h3 className="font-bold">AI Voice Agent</h3>
                 </div>
-                <button onClick={() => { setIsOpen(false); window.speechSynthesis.cancel(); recognitionRef.current?.stop(); }} className="text-white/70 hover:text-white">
+                <button onClick={() => { setIsOpen(false); window.speechSynthesis?.cancel(); recognitionRef.current?.stop(); }} className="text-white/70 hover:text-white">
                   <X size={18} />
                 </button>
               </div>
