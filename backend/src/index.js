@@ -49,7 +49,10 @@ app.use('/api/actions', requireAuth, actionRoutes);
 app.use('/api/ai', requireAuth, aiRoutes);
 app.use(errorHandler);
 
-server.listen(env.port, () => {
-  console.log(`Ganga Maxx credit API running on http://localhost:${env.port}`);
-  initScheduler();
-});
+export { app };
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(env.port, () => {
+    console.log(`Ganga Maxx credit API running on http://localhost:${env.port}`);
+    initScheduler();
+  });
+}
