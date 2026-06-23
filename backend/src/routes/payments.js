@@ -27,7 +27,8 @@ router.post('/', async (req, res, next) => {
         body.invoice_id
       ]);
     }
-    await query('INSERT INTO notifications (type, title, message) VALUES (?, ?, ?)', [
+    await query('INSERT INTO notifications (user_id, type, title, message) VALUES (?, ?, ?, ?)', [
+      req.user ? req.user.id : 1,
       'payment',
       'Payment received',
       `Payment of ${body.amount} received.`
