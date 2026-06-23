@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { registerSocket } from './socket/index.js';
 import authRoutes from './routes/auth.js';
 import customerRoutes from './routes/customers.js';
+import invoiceRoutes from './routes/invoices.js';
 import dashboardRoutes from './routes/dashboard.js';
 import notificationRoutes from './routes/notifications.js';
 import paymentRoutes from './routes/payments.js';
@@ -41,6 +42,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'ganga-maxx-c
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/customers', requireAuth, customerRoutes);
+app.use('/api/invoices', requireAuth, invoiceRoutes);
 app.use('/api/payments', requireAuth, paymentRoutes);
 app.use('/api/reports', requireAuth, reportRoutes);
 app.use('/api/notifications', requireAuth, notificationRoutes);
