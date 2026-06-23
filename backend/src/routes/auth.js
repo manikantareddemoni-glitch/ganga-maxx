@@ -257,7 +257,7 @@ router.post('/register/step1', async (req, res, next) => {
     } else {
       const result = await query(
         'INSERT INTO users (name, email, password_hash, role, mobile_number, status, email_otp, email_otp_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [fullName, body.email, hash, body.role || 'viewer', body.mobile || null, 'pending', emailOtp, expiry]
+        [fullName, body.email, hash, body.role || 'viewer', body.mobile || null, 'active', emailOtp, expiry]
       );
       userId = result.insertId;
     }
