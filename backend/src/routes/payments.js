@@ -17,7 +17,7 @@ router.post('/', async (req, res, next) => {
     }).parse(req.body);
 
     const result = await query(
-      'INSERT INTO payments (customer_id, invoice_id, amount, method, reference_no, payment_date) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO payments (customer_id, invoice_id, amount, payment_method, reference_no, payment_date) VALUES (?, ?, ?, ?, ?, ?)',
       [body.customer_id, body.invoice_id || null, body.amount, body.method, body.reference_no, body.payment_date]
     );
     if (body.invoice_id) {
