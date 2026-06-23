@@ -42,7 +42,15 @@ router.get('/aging', async (req, res, next) => {
       SELECT ar.bucket, ar.customer_id, c.company_name, ar.invoice_id, ar.invoice_no, ar.due_date, ar.days_overdue, ar.priority, ar.balance
       FROM aging_reports ar
       JOIN customers c ON c.id = ar.customer_id
-      ORDER BY FIELD(ar.bucket, 'Current', '0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'), ar.balance DESC
+      ORDER BY 
+        CASE ar.bucket 
+          WHEN 'Current' THEN 1 
+          WHEN '0-30 Days' THEN 2 
+          WHEN '31-60 Days' THEN 3 
+          WHEN '61-90 Days' THEN 4 
+          WHEN '90+ Days' THEN 5 
+          ELSE 6 
+        END, ar.balance DESC
     `);
     const summary = rows.reduce((acc, row) => {
       acc[row.bucket] = (acc[row.bucket] || 0) + Number(row.balance);
