@@ -27,10 +27,10 @@ export async function runDailyAIReminder() {
   try {
     // Query overdue invoices with their customers
     const overdueInvoices = await query(`
-      SELECT c.company_name, i.invoice_no, (i.total_amount - i.paid_amount) AS balance, DATEDIFF(CURDATE(), i.due_date) AS days_overdue
+      SELECT c.company_name, i.invoice_no, (i.total_amount - i.paid_amount) AS balance, CURRENT_DATE - i.due_date AS days_overdue
       FROM invoices i
       JOIN customers c ON i.customer_id = c.id
-      WHERE i.due_date < CURDATE() AND i.status != 'paid' AND i.status != 'cancelled'
+      WHERE i.due_date < CURRENT_DATE AND i.status != 'paid' AND i.status != 'cancelled'
     `);
 
     if (overdueInvoices.length === 0) {
