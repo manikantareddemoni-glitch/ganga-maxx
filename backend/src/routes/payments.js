@@ -21,7 +21,7 @@ router.post('/', async (req, res, next) => {
       [body.customer_id, body.invoice_id || null, body.amount, body.method, body.reference_no, body.payment_date]
     );
     if (body.invoice_id) {
-      await query("UPDATE invoices SET paid_amount = paid_amount + ?, status = CASE WHEN paid_amount + ? >= total_amount THEN 'paid' ELSE 'partial' END WHERE id = ?", [
+      await query("UPDATE invoices SET paid_amount = paid_amount + ?, status = CASE WHEN paid_amount + ? >= total_amount THEN 'paid' ELSE 'partially_paid' END WHERE id = ?", [
         body.amount,
         body.amount,
         body.invoice_id
