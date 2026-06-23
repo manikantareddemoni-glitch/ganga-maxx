@@ -257,7 +257,7 @@ router.post('/register/step1', async (req, res, next) => {
     } else {
       const result = await query(
         'INSERT INTO users (name, email, password_hash, role, mobile_number, status, email_otp, email_otp_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [fullName, body.email, hash, body.role || 'viewer', body.mobile || null, 'active', emailOtp, expiry]
+        [fullName, body.email, hash, body.role || 'viewer', body.mobile || null, 'pending', emailOtp, expiry]
       );
       userId = result.insertId;
     }
@@ -291,7 +291,7 @@ router.post('/register/verify-email', async (req, res, next) => {
     if (user.email_otp !== body.emailOtp) return res.status(401).json({ message: 'Invalid verification code.' });
     if (new Date() > new Date(user.email_otp_expiry)) return res.status(401).json({ message: 'Verification code expired.' });
 
-    await query('UPDATE users SET email_verified = TRUE, email_otp = NULL, email_otp_expiry = NULL WHERE id = ?', [user.id]);
+    await query('UPDATE users SET status = "active", email_verified = TRUE, email_otp = NULL, email_otp_expiry = NULL WHERE id = ?', [user.id]);
 
     res.json({ success: true, message: 'Email verified successfully.' });
   } catch (error) {
