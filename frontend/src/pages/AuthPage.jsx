@@ -18,6 +18,8 @@ export default function AuthPage() {
   const [regName, setRegName] = useState('');
   const [regMobile, setRegMobile] = useState('');
   const [regRole, setRegRole] = useState('');
+  const [otp, setOtp] = useState('');
+  const [registeredUserId, setRegisteredUserId] = useState(null);
   
   const { login } = useAuth();
   const { addToast } = useToast();
@@ -36,7 +38,22 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
-    if (currentMode === 'login') {
+    if (currentMode === 'verify') {
+      try {
+        await api.post('/auth/register/verify-email', {
+          userId: registeredUserId,
+          emailOtp: otp
+        });
+        addToast('Verification successful! You can now log in.', 'success');
+        setCurrentMode('login');
+        setPassword('');
+        setOtp('');
+      } catch (err) {
+        addToast(err.response?.data?.message || 'Verification failed', 'error');
+      } finally {
+        setLoading(false);
+      }
+    } else if (currentMode === 'login') {
       try {
         await login(email, password, rememberMe);
         addToast('Login successful', 'success');
@@ -48,13 +65,10 @@ export default function AuthPage() {
       }
     } else {
       try {
-        // Attempt to hit the registration endpoint. 
-        // Adapting to bypass complex OTP if possible based on user request to simplify.
-        // We will pass all data to a single endpoint.
         const [firstName, ...lastNameParts] = regName.split(' ');
         const lastName = lastNameParts.join(' ') || ' ';
         
-        await api.post('/auth/register/step1', {
+        const res = await api.post('/auth/register/step1', {
           firstName: firstName || 'User',
           lastName: lastName,
           email: email,
@@ -63,9 +77,9 @@ export default function AuthPage() {
           mobile: regMobile
         });
         
-        addToast('Registration successful! You can now log in.', 'success');
-        setCurrentMode('login');
-        setPassword('');
+        setRegisteredUserId(res.data.userId);
+        addToast('Verification code sent to your email.', 'success');
+        setCurrentMode('verify');
       } catch (err) {
         addToast(err.response?.data?.message || 'Failed to register', 'error');
       } finally {
@@ -150,18 +164,42 @@ export default function AuthPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               
-              {/* Common Email Field */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Work Email</label>
-                <input 
-                  required 
-                  type="email" 
-                  placeholder="name@company.com" 
-                  className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                />
-              </div>
+              {currentMode === 'verify' ? (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-5 overflow-hidden"
+                >
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Verification Code</label>
+                    <input 
+                      required 
+                      type="text" 
+                      placeholder="123456" 
+                      maxLength={6}
+                      className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm tracking-widest text-center font-mono" 
+                      value={otp} 
+                      onChange={e => setOtp(e.target.value)} 
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 text-center">
+                    Please check your email console for the code.
+                  </p>
+                </motion.div>
+              ) : (
+                <>
+                  {/* Common Email Field */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Work Email</label>
+                    <input 
+                      required 
+                      type="email" 
+                      placeholder="name@company.com" 
+                      className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                    />
+                  </div>
 
 
               {/* Register Specific Fields */}
@@ -252,9 +290,11 @@ export default function AuthPage() {
                   </label>
                 </div>
               )}
+              </>
+              )}
 
               <button 
-                disabled={loading || !email || !password} 
+                disabled={loading || (currentMode === 'verify' ? !otp : (!email || !password))} 
                 type="submit" 
                 className="w-full h-11 mt-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -269,6 +309,8 @@ export default function AuthPage() {
                 ) : (
                   currentMode === 'login' ? (
                     <>Sign In <LogIn size={16} /></>
+                  ) : currentMode === 'verify' ? (
+                    <>Verify Code <Sparkles size={16} /></>
                   ) : (
                     <>Request Access <UserPlus size={16} /></>
                   )
