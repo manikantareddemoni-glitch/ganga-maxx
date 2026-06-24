@@ -3,20 +3,32 @@ import OpenAI from 'openai';
 
 const router = Router();
 
-function getOpenAIClient() {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not set in the environment.');
+function getAIConfig() {
+  if (process.env.GROQ_API_KEY) {
+    return {
+      client: new OpenAI({
+        apiKey: process.env.GROQ_API_KEY.trim(),
+        baseURL: 'https://api.groq.com/openai/v1'
+      }),
+      model: 'llama3-8b-8192'
+    };
   }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+  
+  if (process.env.OPENAI_API_KEY) {
+    return {
+      client: new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() }),
+      model: 'gpt-4o'
+    };
+  }
+
+  throw new Error('Neither GROQ_API_KEY nor OPENAI_API_KEY is set in the environment.');
 }
 
 router.post('/generate-reminder', async (req, res, next) => {
   const { customer_name = 'Customer', outstanding = '0', days_overdue = '0' } = req.body;
 
   try {
-    const client = getOpenAIClient();
+    const { client, model } = getAIConfig();
     const prompt = `
       Write a professional B2B collection email reminder for ${customer_name}.
       They have an outstanding balance of ₹${outstanding} which is ${days_overdue} days overdue.
@@ -24,7 +36,7 @@ router.post('/generate-reminder', async (req, res, next) => {
       Keep it under 150 words. Do not include placeholders like [Your Name].
     `;
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: model,
       messages: [
         { role: "system", content: "You are a professional B2B collections officer." },
         { role: "user", content: prompt }
@@ -48,14 +60,14 @@ router.post('/expand-notes', async (req, res, next) => {
   }
 
   try {
-    const client = getOpenAIClient();
+    const { client, model } = getAIConfig();
     const prompt = `
       Convert the following shorthand collection notes into a professional, clear, and audit-ready log entry.
       Shorthand: "${shorthand}"
       Return ONLY the expanded professional note. Do not add conversational filler.
     `;
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: model,
       messages: [
         { role: "system", content: "You are an AI that formats administrative records." },
         { role: "user", content: prompt }
@@ -75,7 +87,7 @@ router.post('/aging-summary', async (req, res, next) => {
   const { metrics = {} } = req.body;
 
   try {
-    const client = getOpenAIClient();
+    const { client, model } = getAIConfig();
     const prompt = `
       Analyze the following B2B aging report metrics and provide a 2-paragraph executive summary.
       Metrics: ${JSON.stringify(metrics)}
@@ -83,7 +95,7 @@ router.post('/aging-summary', async (req, res, next) => {
       Format it in Markdown but do not use an overall heading.
     `;
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: model,
       messages: [
         { role: "system", content: "You are a Chief Financial Officer analyzing credit risk." },
         { role: "user", content: prompt }
@@ -103,7 +115,7 @@ router.post('/voice-chat', async (req, res, next) => {
   const { message = '' } = req.body;
 
   try {
-    const client = getOpenAIClient();
+    const { client, model } = getAIConfig();
     const prompt = `
       You are the Ganga Maxx AI Assistant, a helpful live voice agent for the Ganga Maxx Credit Control web application. 
       Your job is to explain the project and clear any doubts the user has about the website.
@@ -115,7 +127,7 @@ router.post('/voice-chat', async (req, res, next) => {
       The user says: "${message}"
     `;
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: model,
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
       temperature: 0.7
