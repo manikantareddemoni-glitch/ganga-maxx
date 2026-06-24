@@ -251,13 +251,13 @@ router.post('/register/step1', async (req, res, next) => {
     if (existing && existing.status === 'pending') {
       await query(
         'UPDATE users SET name=?, password_hash=?, role=?, mobile_number=?, email_otp=?, email_otp_expiry=? WHERE id=?',
-        [fullName, hash, body.role || 'viewer', body.mobile || null, emailOtp, expiry, existing.id]
+        [fullName, hash, 'viewer', body.mobile || null, emailOtp, expiry, existing.id]
       );
       userId = existing.id;
     } else {
       const result = await query(
         'INSERT INTO users (name, email, password_hash, role, mobile_number, status, email_otp, email_otp_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [fullName, body.email, hash, body.role || 'viewer', body.mobile || null, 'pending', emailOtp, expiry]
+        [fullName, body.email, hash, 'viewer', body.mobile || null, 'pending', emailOtp, expiry]
       );
       userId = result.insertId;
     }
