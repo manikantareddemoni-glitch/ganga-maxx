@@ -30,14 +30,12 @@ import DeliveryRoutes from './pages/DeliveryRoutes';
 import ProofOfDelivery from './pages/ProofOfDelivery';
 import KycVerification from './pages/KycVerification';
 import RiskAlerts from './pages/RiskAlerts';
-import { VoiceAssistant } from './components/VoiceAssistant';
 
 function Protected({ children }) {
   const { user } = useAuth();
   return (
     <>
       {children}
-      <VoiceAssistant />
     </>
   );
 }
