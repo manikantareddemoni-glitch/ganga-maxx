@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+let baseURL = import.meta.env.VITE_API_URL;
+if (!baseURL || baseURL.includes('127.0.0.1') || baseURL.includes('localhost')) {
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    baseURL = 'https://ganga-maxx-backend.onrender.com/api';
+  } else {
+    baseURL = baseURL || 'http://127.0.0.1:5000/api';
+  }
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://ganga-maxx-backend.onrender.com/api',
+  baseURL,
   timeout: 10000
 });
 

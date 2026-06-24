@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-describe('DASHBOARD & ANALYTICS MODULE', () => {
+describe('AGING REPORT MODULE', () => {
   const API_URL = process.env.API_URL || 'https://ganga-maxx-backend.onrender.com';
   let adminToken = '';
   const testEmail = 'admin@gangamaxx.com';
@@ -16,21 +16,17 @@ describe('DASHBOARD & ANALYTICS MODULE', () => {
     adminToken = data.token;
   });
 
-  it('DASH-001 & DASH-002: Dashboard Overview & KPI Data', async () => {
-    const res = await fetch(`${API_URL}/api/dashboard`, {
+  it('AGE-001: Generate Aging Report', async () => {
+    const res = await fetch(`${API_URL}/api/reports/aging`, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     
     expect(res.status).toBe(200);
     const data = await res.json();
     
-    // Check KPIs
-    expect(data).toHaveProperty('metrics');
-    expect(data.metrics).toHaveProperty('totaloutstanding');
-    expect(data.metrics).toHaveProperty('totaloverdue');
-    
-    // Check Aging Data
-    expect(data).toHaveProperty('aging');
-    expect(Array.isArray(data.aging)).toBe(true);
+    // Test AGE-002: Bucketing Logic implicitly by checking summary keys
+    expect(data).toHaveProperty('summary');
+    expect(data).toHaveProperty('rows');
+    expect(Array.isArray(data.rows)).toBe(true);
   });
 });

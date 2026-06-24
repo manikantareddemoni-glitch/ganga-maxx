@@ -1,6 +1,6 @@
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie } from 'recharts';
 import { motion } from 'framer-motion';
-import { Truck, MapPin, Clock, CheckCircle2, AlertTriangle, Route } from 'lucide-react';
+import { Truck, MapPin, Clock, CheckCircle2, AlertTriangle, Route, Package } from 'lucide-react';
 import { PageTransition } from '../../components/PageTransition';
 import { KpiCard } from '../../components/KpiCard';
 import { useAuth } from '../../context/AuthContext';

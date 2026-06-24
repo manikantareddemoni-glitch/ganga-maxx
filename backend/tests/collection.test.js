@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-describe('DASHBOARD & ANALYTICS MODULE', () => {
+describe('COLLECTION ACTIONS MODULE', () => {
   const API_URL = process.env.API_URL || 'https://ganga-maxx-backend.onrender.com';
   let adminToken = '';
   const testEmail = 'admin@gangamaxx.com';
@@ -16,21 +16,28 @@ describe('DASHBOARD & ANALYTICS MODULE', () => {
     adminToken = data.token;
   });
 
-  it('DASH-001 & DASH-002: Dashboard Overview & KPI Data', async () => {
-    const res = await fetch(`${API_URL}/api/dashboard`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+  it('COL-002: Send Email Reminder', async () => {
+    const res = await fetch(`${API_URL}/api/actions`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({
+        action: 'send_reminders',
+        reminders: [
+          {
+            customer: 'Test Customer',
+            invoice_no: 'INV-TEST-123',
+            days_overdue: 45,
+            amount: 50000
+          }
+        ]
+      })
     });
     
     expect(res.status).toBe(200);
     const data = await res.json();
-    
-    // Check KPIs
-    expect(data).toHaveProperty('metrics');
-    expect(data.metrics).toHaveProperty('totaloutstanding');
-    expect(data.metrics).toHaveProperty('totaloverdue');
-    
-    // Check Aging Data
-    expect(data).toHaveProperty('aging');
-    expect(Array.isArray(data.aging)).toBe(true);
+    expect(data.success).toBe(true);
   });
 });

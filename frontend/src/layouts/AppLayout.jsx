@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation, useOutlet } from 'react-rout
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, Bell, Building2, FileText, LayoutDashboard, LogOut, Menu, Settings, Wallet, X, User, ShieldCheck, Package, Truck, ShieldAlert, ClipboardList, Target, Users, Boxes } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { logoBase64 } from '../lib/logoBase64';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
 import { NotificationToast } from '../components/NotificationToast';
@@ -75,7 +76,7 @@ export function AppLayout() {
       onClick={() => navigate('/')}
       title="Go Home"
     >
-      <img src="/logo.jpg" alt="Ganga Maxx Logo" className="h-10 md:h-12 object-contain bg-white rounded-lg p-1 shadow-sm" />
+      <img src={logoBase64} alt="Ganga Maxx Logo" className="h-10 md:h-12 object-contain bg-white rounded-lg p-1 shadow-sm" />
       <div className="flex flex-col justify-center">
         <p className="text-sm font-bold leading-tight text-slate-950 dark:text-white tracking-wide">Ganga Maxx</p>
         <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 tracking-widest uppercase">Console</p>

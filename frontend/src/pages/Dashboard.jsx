@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { PageTransition } from '../components/PageTransition';
 import { KpiCard } from '../components/KpiCard';
 import { Skeleton } from '../components/Skeleton';
-import { collectionActions, dashboard as mock } from '../data/mockData';
+import { dashboard as mock } from '../data/mockData';
 import { api, triggerBackendAction } from '../lib/api';
 import { currency } from '../lib/format';
 
@@ -118,6 +118,7 @@ const CustomActiveDot = (props) => {
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [isOffline, setIsOffline] = useState(false);
+  const [trendPeriod, setTrendPeriod] = useState('Last 6 Months');
 
   useEffect(() => {
     let mounted = true;
@@ -142,11 +143,13 @@ export default function Dashboard() {
   }
 
   const metrics = data.metrics || mock.metrics;
-  const rawRevenue = data.revenue?.length ? data.revenue : mock.revenue;
-  const revenue = rawRevenue.map((item, index) => ({ ...item, dotColor: colors[index % colors.length] }));
+  const rawRevenue = data.revenue?.length ? data.revenue : [];
+  const revenueSlice = trendPeriod === 'Last 6 Months' ? rawRevenue.slice(-6) : rawRevenue.slice(0, 6);
+  const revenue = revenueSlice.map((item, index) => ({ ...item, dotColor: colors[index % colors.length] }));
   const rawAging = data.aging?.length ? data.aging : mock.aging;
   const aging = rawAging.map((item, index) => ({ ...item, fill: colors[index % colors.length] }));
   const activities = data.activities?.length ? data.activities : mock.activities;
+  const collectionActions = data.collectionActions?.length ? data.collectionActions : [];
 
   return (
     <PageTransition>
@@ -171,7 +174,30 @@ export default function Dashboard() {
           <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-brand-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-bold">Collections Trend</h2>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Last 6 months</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                {trendPeriod === 'Last 6 Months' ? 'Present 6 Months' : 'Previous 6 Months'}
+              </span>
+              <div className="flex items-center rounded-md border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-800">
+                <button
+                  onClick={() => setTrendPeriod('Previous 6 Months')}
+                  disabled={trendPeriod === 'Previous 6 Months'}
+                  className="p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  title="Previous 6 Months"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div className="h-3 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <button
+                  onClick={() => setTrendPeriod('Last 6 Months')}
+                  disabled={trendPeriod === 'Last 6 Months'}
+                  className="p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  title="Present 6 Months"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">

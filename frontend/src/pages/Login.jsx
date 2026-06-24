@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { Eye, EyeOff, BarChart3, TrendingUp, Users } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { logoBase64 } from '../lib/logoBase64';
 
 // Helper to determine dashboard route based on role
 
@@ -71,7 +72,7 @@ export default function Login() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Ganga Maxx Logo" className="h-16 object-contain bg-white rounded-2xl p-1 shadow-lg" />
+            <img src={logoBase64} alt="Ganga Maxx Logo" className="h-16 object-contain bg-white rounded-2xl p-1 shadow-lg" />
             <span className="text-2xl font-bold tracking-tight">Ganga Maxx</span>
           </div>
         </div>

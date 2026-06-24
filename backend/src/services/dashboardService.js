@@ -13,11 +13,26 @@ export async function getDashboardOverview() {
   const revenueData = await query(`
     SELECT TO_CHAR(payment_date, 'Mon') AS month, SUM(amount) AS collections
     FROM payments
-    WHERE payment_date >= CURRENT_DATE - INTERVAL '6 months'
+    WHERE payment_date >= CURRENT_DATE - INTERVAL '11 months'
     GROUP BY EXTRACT(YEAR FROM payment_date), EXTRACT(MONTH FROM payment_date), TO_CHAR(payment_date, 'Mon')
     ORDER BY MIN(payment_date)
   `);
-  const revenue = revenueData.map(item => ({ ...item, collections: Number(item.collections) }));
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const last12Months = [];
+  for (let i = 11; i >= 0; i--) {
+    let d = new Date();
+    d.setMonth(d.getMonth() - i);
+    last12Months.push(monthNames[d.getMonth()]);
+  }
+  
+  const revenue = last12Months.map(monthName => {
+    const found = revenueData.find(item => item.month === monthName);
+    return {
+      month: monthName,
+      collections: found ? Number(found.collections) : 0
+    };
+  });
 
   const agingData = await query(`
     SELECT bucket, SUM(balance) AS value
@@ -35,5 +50,28 @@ export async function getDashboardOverview() {
     LIMIT 8
   `);
 
-  return { metrics, revenue, aging, activities };
+  const collectionActionsRaw = await query(`
+    SELECT
+      ar.id,
+      c.company_name AS customer,
+      ar.invoice_no,
+      ar.days_overdue,
+      ar.balance AS amount,
+      ar.priority,
+      CASE 
+        WHEN ar.priority = 'Critical' THEN 'Block further credit and request settlement'
+        WHEN ar.priority = 'High' THEN 'Call finance team and confirm payment date'
+        ELSE 'Send reminder with latest statement'
+      END AS action,
+      'Accounts Manager' AS owner
+    FROM aging_reports ar
+    JOIN customers c ON c.id = ar.customer_id
+    WHERE ar.days_overdue > 0
+    ORDER BY ar.days_overdue DESC
+    LIMIT 4
+  `);
+  
+  const collectionActions = collectionActionsRaw.map(item => ({...item, amount: Number(item.amount)}));
+
+  return { metrics, revenue, aging, activities, collectionActions };
 }
