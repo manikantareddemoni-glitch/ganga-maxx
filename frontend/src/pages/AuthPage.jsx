@@ -7,7 +7,7 @@ import { Eye, EyeOff, Sparkles, LogIn, UserPlus } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function AuthPage() {
-  const [currentMode, setCurrentMode] = useState('login');
+  const [currentMode, setCurrentMode] = useState('register');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,10 +27,10 @@ export default function AuthPage() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === '/register') {
-      setCurrentMode('register');
-    } else {
+    if (location.pathname === '/login') {
       setCurrentMode('login');
+    } else {
+      setCurrentMode('register');
     }
   }, [location.pathname]);
 
@@ -140,17 +140,6 @@ export default function AuthPage() {
             <div className="flex gap-6 mb-8 border-b border-slate-700">
               <button 
                 type="button" 
-                onClick={() => setCurrentMode('login')}
-                className={`text-sm font-bold pb-3 border-b-2 transition-colors ${
-                  currentMode === 'login' 
-                    ? 'border-amber-500 text-white' 
-                    : 'border-transparent text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                Login
-              </button>
-              <button 
-                type="button" 
                 onClick={() => setCurrentMode('register')}
                 className={`text-sm font-bold pb-3 border-b-2 transition-colors ${
                   currentMode === 'register' 
@@ -159,6 +148,17 @@ export default function AuthPage() {
                 }`}
               >
                 Register
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setCurrentMode('login')}
+                className={`text-sm font-bold pb-3 border-b-2 transition-colors ${
+                  currentMode === 'login' 
+                    ? 'border-amber-500 text-white' 
+                    : 'border-transparent text-slate-400 hover:text-slate-300'
+                }`}
+              >
+                Login
               </button>
             </div>
 

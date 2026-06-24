@@ -44,7 +44,7 @@ function Protected({ children }) {
 
 function RoleProtectedRoute({ allowedRoles, children, ...props }) {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/register" replace />;
   if (!allowedRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
@@ -53,7 +53,7 @@ function RoleProtectedRoute({ allowedRoles, children, ...props }) {
 
 function RootRedirect() {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/register" replace />;
   switch (user.role) {
     case 'admin': return <Navigate to="/admin-dashboard" replace />;
     case 'finance_manager': return <Navigate to="/finance-dashboard" replace />;
@@ -61,7 +61,7 @@ function RootRedirect() {
     case 'collection_officer': return <Navigate to="/collections-dashboard" replace />;
     case 'sales_executive': return <Navigate to="/sales-dashboard" replace />;
     case 'viewer': return <Navigate to="/viewer-dashboard" replace />;
-    default: return <Navigate to="/login" replace />;
+    default: return <Navigate to="/register" replace />;
   }
 }
 
