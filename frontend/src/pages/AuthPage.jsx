@@ -231,6 +231,27 @@ export default function AuthPage() {
                       onChange={e => setRegMobile(e.target.value)} 
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Requested Role</label>
+                    <select 
+                      required={currentMode === 'register'}
+                      className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm" 
+                      value={regRole} 
+                      onChange={e => setRegRole(e.target.value)} 
+                    >
+                      <option value="" disabled>Select a role</option>
+                      <option value="admin">Admin</option>
+                      <option value="finance_manager">Finance Manager</option>
+                      <option value="accounts_executive">Accounts Executive</option>
+                      <option value="collection_officer">Collection Officer</option>
+                      <option value="sales_executive">Sales Executive</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                    <p className="mt-2 text-[10px] text-amber-500/80 leading-tight">
+                      * Note: Roles other than Viewer require Admin approval. You will temporarily be assigned as a Viewer until approved.
+                    </p>
+                  </div>
                 </motion.div>
               )}
 

@@ -18,6 +18,7 @@ import reportRoutes from './routes/reports.js';
 import settingsRoutes from './routes/settings.js';
 import actionRoutes from './routes/actions.js';
 import aiRoutes from './routes/ai.js';
+import adminRoutes from './routes/admin.js';
 import { initScheduler } from './services/schedulerService.js';
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/notifications', requireAuth, notificationRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/actions', requireAuth, actionRoutes);
 app.use('/api/ai', requireAuth, aiRoutes);
+app.use('/api/admin', requireAuth, adminRoutes);
 app.use(errorHandler);
 
 export { app };

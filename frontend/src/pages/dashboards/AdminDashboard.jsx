@@ -1,7 +1,8 @@
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { motion } from 'framer-motion';
-import { Bell, Building2, Clock, IndianRupee, PhoneCall, Receipt, Send, Wallet } from 'lucide-react';
+import { Bell, Building2, Clock, IndianRupee, PhoneCall, Receipt, Send, Wallet, CheckCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from '../../components/PageTransition';
 import { KpiCard } from '../../components/KpiCard';
 import { Skeleton } from '../../components/Skeleton';
@@ -114,6 +115,99 @@ const CustomActiveDot = (props) => {
   return <circle cx={cx} cy={cy} r={7} fill={fill} stroke="#ffffff" strokeWidth={2} />;
 };
 
+function RoleApprovals() {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRequests = () => {
+    api.get('/admin/role-requests')
+      .then(res => setRequests(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const handleApprove = async (id) => {
+    try {
+      await api.post(`/admin/approve-role/${id}`);
+      setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await api.post(`/admin/reject-role/${id}`);
+      setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (loading || requests.length === 0) return null;
+
+  return (
+    <motion.section 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8 glass-panel group relative rounded-xl p-5 transition-all duration-300 hover:shadow-glow-hover border-amber-300 dark:border-amber-500/30 bg-amber-500/5"
+    >
+      <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-amber-500/10 dark:from-amber-400/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <h2 className="mb-4 text-lg font-bold flex items-center gap-2">
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+        </span>
+        Pending Role Approvals
+      </h2>
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+        <AnimatePresence>
+          {requests.map(req => (
+            <motion.div 
+              key={req.id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, filter: 'blur(5px)' }}
+              className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-800"
+            >
+              <div>
+                <p className="font-semibold text-slate-900 dark:text-white">{req.name}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{req.email}</p>
+              </div>
+              <div className="flex items-center justify-between mt-auto">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                  Wants: <span className="text-amber-600 dark:text-amber-400 uppercase tracking-wider">{req.requested_role}</span>
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleReject(req.id)}
+                    className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/20 rounded-md transition-colors"
+                    title="Reject Request"
+                  >
+                    <XCircle size={20} />
+                  </button>
+                  <button 
+                    onClick={() => handleApprove(req.id)}
+                    className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-md transition-colors"
+                    title="Approve Request"
+                  >
+                    <CheckCircle size={20} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </motion.section>
+  );
+}
+
 export default function Dashboard({ context }) {
   const [data, setData] = useState(null);
   const [isOffline, setIsOffline] = useState(false);
@@ -165,6 +259,9 @@ export default function Dashboard({ context }) {
           {isOffline ? 'Offline - Using Local Data' : 'Live sync active'}
         </div>
       </div>
+      
+      <RoleApprovals />
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KpiCard label="Total Customers" value={metrics.totalCustomers} icon={Building2} delay={0.02} />
         <KpiCard label="Outstanding" value={metrics.totalOutstanding} icon={IndianRupee} tone="cyan" money delay={0.06} />

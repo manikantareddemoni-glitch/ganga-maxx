@@ -247,17 +247,19 @@ router.post('/register/step1', async (req, res, next) => {
     const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
     const hash = await bcrypt.hash(body.password, 10);
 
+    const requestedRole = (body.role && body.role !== 'viewer') ? body.role : null;
+
     let userId;
     if (existing && existing.status === 'pending') {
       await query(
-        'UPDATE users SET name=?, password_hash=?, role=?, mobile_number=?, email_otp=?, email_otp_expiry=? WHERE id=?',
-        [fullName, hash, 'viewer', body.mobile || null, emailOtp, expiry, existing.id]
+        'UPDATE users SET name=?, password_hash=?, role=?, requested_role=?, mobile_number=?, email_otp=?, email_otp_expiry=? WHERE id=?',
+        [fullName, hash, 'viewer', requestedRole, body.mobile || null, emailOtp, expiry, existing.id]
       );
       userId = existing.id;
     } else {
       const result = await query(
-        'INSERT INTO users (name, email, password_hash, role, mobile_number, status, email_otp, email_otp_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [fullName, body.email, hash, 'viewer', body.mobile || null, 'pending', emailOtp, expiry]
+        'INSERT INTO users (name, email, password_hash, role, requested_role, mobile_number, status, email_otp, email_otp_expiry) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [fullName, body.email, hash, 'viewer', requestedRole, body.mobile || null, 'pending', emailOtp, expiry]
       );
       userId = result.insertId;
     }
