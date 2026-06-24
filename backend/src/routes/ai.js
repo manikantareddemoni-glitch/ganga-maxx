@@ -105,9 +105,14 @@ router.post('/voice-chat', async (req, res, next) => {
   try {
     const client = getOpenAIClient();
     const prompt = `
-      You are an AI Voice Agent for Ganga Maxx Credit Control. You are literally speaking to the customer on a phone call.
-      Keep your answers VERY short, conversational, and natural. Do not use formatting like bolding or bullet points.
-      The customer says: "${message}"
+      You are the Ganga Maxx AI Assistant, a helpful live voice agent for the Ganga Maxx Credit Control web application. 
+      Your job is to explain the project and clear any doubts the user has about the website.
+      
+      Project Context: Ganga Maxx is a comprehensive B2B credit control and collections platform. It features role-based access control (Admin, Finance Manager, Accounts Executive, Sales Executive, Collection Officer, etc.), a dashboard for tracking overdue payments, aging distribution charts, secure role approval systems, and tools for following up on outstanding invoices.
+      
+      Keep your answers VERY short, conversational, clear, and natural. You are speaking out loud to the user. Do not use formatting like bolding or bullet points.
+      
+      The user says: "${message}"
     `;
     const response = await client.chat.completions.create({
       model: "gpt-4o",
@@ -120,14 +125,14 @@ router.post('/voice-chat', async (req, res, next) => {
     console.log(`OpenAI Error: ${e.message} - Falling back to simulation mode`);
 
     const user_msg = message.toLowerCase();
-    let reply = "Hello! I am the Ganga Maxx AI Assistant. I am calling regarding your overdue balance. How can I help you today?";
+    let reply = "Hello! I am the Ganga Maxx AI Assistant. I can help explain the features of this website.";
 
-    if (user_msg.includes("doubt") || user_msg.includes("question")) {
-      reply = "I understand you have a doubt about your invoice. Don't worry, I'm here to help. Could you please provide your invoice number?";
-    } else if (user_msg.includes("time") || user_msg.includes("days") || user_msg.includes("extension")) {
-      reply = "We can certainly look into granting a short extension. When exactly do you expect to make the payment?";
-    } else if (user_msg.includes("pay") || user_msg.includes("paid")) {
-      reply = "Thank you. If you have already made the payment, please allow 24 hours for it to reflect in our system. Is there anything else I can help you with?";
+    if (user_msg.includes("doubt") || user_msg.includes("question") || user_msg.includes("explain")) {
+      reply = "Ganga Maxx is a B2B credit control platform. It helps businesses manage outstanding invoices, track overdue payments, and manage different user roles like Admin and Finance Manager.";
+    } else if (user_msg.includes("role") || user_msg.includes("access")) {
+      reply = "The system has secure role-based access. New users start as Viewers and must be approved by an Admin to get higher roles like Finance Manager or Sales Executive.";
+    } else if (user_msg.includes("dashboard")) {
+      reply = "The dashboard shows key metrics like total outstanding balances, pending invoices, and a chart of collection trends over the last six months.";
     }
 
     return res.json({ reply });
