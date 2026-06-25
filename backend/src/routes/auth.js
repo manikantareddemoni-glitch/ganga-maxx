@@ -160,7 +160,7 @@ router.post('/login/mobile', async (req, res, next) => {
 // Verify OTP (Login)
 // ---------------------------------------------------------
 const verifyOtpSchema = z.object({
-  userId: z.number(),
+  userId: z.coerce.number(),
   otp: z.string().length(6),
   method: z.enum(['email', 'mobile'])
 });
@@ -294,7 +294,7 @@ router.post('/register/step1', async (req, res, next) => {
 // Multi-Step Registration: Step 2 (Verify Email)
 // ---------------------------------------------------------
 const verifyEmailSchema = z.object({
-  userId: z.number(),
+  userId: z.coerce.number(),
   emailOtp: z.string().length(6)
 });
 
@@ -319,7 +319,7 @@ router.post('/register/verify-email', async (req, res, next) => {
 // Multi-Step Registration: Step 3 (Send Mobile OTP)
 // ---------------------------------------------------------
 const sendMobileOtpSchema = z.object({
-  userId: z.number(),
+  userId: z.coerce.number(),
   mobileNumber: z.string().min(10)
 });
 
@@ -367,7 +367,7 @@ router.post('/register/send-mobile-otp', async (req, res, next) => {
 // Multi-Step Registration: Step 4 (Verify Mobile & Login)
 // ---------------------------------------------------------
 const verifyMobileSchema = z.object({
-  userId: z.number(),
+  userId: z.coerce.number(),
   mobileOtp: z.string().length(6)
 });
 
