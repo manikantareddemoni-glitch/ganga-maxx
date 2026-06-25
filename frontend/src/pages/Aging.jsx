@@ -12,6 +12,8 @@ import { exportPdfWithCharts } from '../lib/exporters';
 import { triggerBackendAction, api } from '../lib/api';
 import { Modal } from '../components/Modal';
 import { logoBase64 } from '../lib/logoBase64';
+import { Skeleton } from '../components/Skeleton';
+import { useEffect } from 'react';
 
 const colors = ['#6366f1', '#22d3ee', '#f59e0b', '#fb7185', '#10b981'];
 
@@ -44,15 +46,30 @@ export default function Aging() {
   const [expandedNote, setExpandedNote] = useState('');
   const [loadingNotes, setLoadingNotes] = useState(false);
 
+  const [agingData, setAgingData] = useState([]);
+  const [agingRowsData, setAgingRowsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/dashboard'),
+      api.get('/reports/aging')
+    ]).then(([dashboardRes, reportsRes]) => {
+      setAgingData(dashboardRes.data.aging || []);
+      setAgingRowsData(reportsRes.data.rows || []);
+    }).catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   async function exportReport() {
-    await triggerBackendAction('export_aging_report', { rows: agingRows });
-    exportPdfWithCharts('ganga-maxx-aging-report.pdf', agingRows, 'aging-chart-container');
+    await triggerBackendAction('export_aging_report', { rows: agingRowsData });
+    exportPdfWithCharts('ganga-maxx-aging-report.pdf', agingRowsData, 'aging-chart-container');
   }
 
   async function generateAiSummary() {
     setLoadingSummary(true);
     try {
-      const res = await api.post('/ai/aging-summary', { metrics: dashboard.aging });
+      const res = await api.post('/ai/aging-summary', { metrics: agingData });
       setAiSummary(res.data.summary);
     } catch (e) {
       console.error(e);
@@ -91,10 +108,12 @@ export default function Aging() {
     setLoadingNotes(false);
   }
 
-  const agingDataWithColors = dashboard.aging.map((item, index) => ({
+  const agingDataWithColors = agingData.map((item, index) => ({
     ...item,
     fill: colors[index % colors.length]
   }));
+
+  if (loading) return <Skeleton />;
 
   return (
     <PageTransition>
@@ -112,7 +131,7 @@ export default function Aging() {
       </div>
 
       <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {dashboard.aging.map((item, index) => <KpiCard key={item.bucket} label={item.bucket} value={item.value} icon={Clock} tone={['indigo', 'cyan', 'amber', 'rose', 'emerald'][index]} money delay={index * 0.04} />)}
+        {agingData.map((item, index) => <KpiCard key={item.bucket} label={item.bucket} value={item.value} icon={Clock} tone={['indigo', 'cyan', 'amber', 'rose', 'emerald'][index]} money delay={index * 0.04} />)}
       </div>
 
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="mb-5">
@@ -144,14 +163,14 @@ export default function Aging() {
                 <XAxis dataKey="bucket" stroke="#94a3b8" />
                 <YAxis tickFormatter={(v) => `${Math.round(v / 100000)}L`} stroke="#94a3b8" />
                 <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(148,163,184,0.05)'}} />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1500} animationEasing="ease-out">{dashboard.aging.map((item, index) => <Cell key={item.bucket} fill={colors[index]} className="transition-opacity hover:opacity-80 cursor-pointer" />)}</Bar>
+                <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1500} animationEasing="ease-out">{agingData.map((item, index) => <Cell key={item.bucket} fill={colors[index]} className="transition-opacity hover:opacity-80 cursor-pointer" />)}</Bar>
               </BarChart>
             </ResponsiveContainer>
         </div>
       </motion.section>
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} whileHover={{ y: -4 }} className="glass-panel group relative rounded-xl p-5 transition-all duration-300 hover:shadow-glow-hover hover:border-sky-300 dark:hover:border-sky-500/30">
           <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-sky-500/10 dark:from-sky-400/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <DataTable rows={agingRows} columns={[
+          <DataTable rows={agingRowsData} columns={[
             { key: 'bucket', label: 'Bucket' },
             { key: 'company_name', label: 'Customer' },
             { key: 'invoice_no', label: 'Invoice' },
