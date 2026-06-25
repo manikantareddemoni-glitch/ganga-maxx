@@ -152,7 +152,7 @@ export default function ViewerDashboard() {
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-slate-900 dark:text-white">{activity.title}</h4>
                       <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
-                        {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                        {timeAgo(activity.createdAt)}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{activity.message}</p>
