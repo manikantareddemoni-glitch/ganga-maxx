@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { Eye, EyeOff, Sparkles, LogIn, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, LogIn, UserPlus, Send } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function AuthPage() {
@@ -366,6 +366,7 @@ export default function AuthPage() {
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                </div>
                 </div>
               )}
               
