@@ -1,6 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { motion } from 'framer-motion';
-import { Building2, Clock, IndianRupee, Receipt, Wallet, Activity, ArrowRight, Bell } from 'lucide-react';
+import { Building2, Clock, IndianRupee, Receipt, Wallet, Activity, ArrowRight, Bell, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PageTransition } from '../../components/PageTransition';
 import { Skeleton } from '../../components/Skeleton';
@@ -19,7 +19,7 @@ function timeAgo(dateString) {
   return `${days}d ago`;
 }
 
-const colors = ['#334155', '#475569', '#64748B', '#94A3B8', '#CBD5E1'];
+const colors = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -45,10 +45,16 @@ const ActivityIcon = ({ type }) => {
   }
 };
 
-const MetricTile = ({ label, value, subtext }) => (
-  <motion.div whileHover={{ y: -2 }} className="rounded-xl border border-slate-200/60 bg-white/40 p-5 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/40">
-    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</h3>
-    <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
+const MetricTile = ({ label, value, subtext, icon: Icon, colorClass, bgClass }) => (
+  <motion.div whileHover={{ y: -2 }} className={`group relative overflow-hidden rounded-xl border border-slate-200/60 bg-white/40 p-5 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/40`}>
+    <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity duration-500 group-hover:opacity-30 ${bgClass}`} />
+    <div className="flex items-start justify-between">
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</h3>
+        <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
+      </div>
+      {Icon && <div className={`rounded-full p-2 shadow-sm ${bgClass} bg-opacity-10 dark:bg-opacity-20`}><Icon size={20} className={colorClass} /></div>}
+    </div>
     {subtext && <p className="mt-1 text-xs text-slate-400">{subtext}</p>}
   </motion.div>
 );
@@ -84,10 +90,10 @@ export default function ViewerDashboard() {
         
         {/* Row 1: Metrics */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricTile label="Active Customers" value={data.metrics.totalCustomers} subtext="Total registered accounts" />
-          <MetricTile label="Total Outstanding" value={currency(data.metrics.totalOutstanding)} subtext="Across all aging buckets" />
-          <MetricTile label="Total Overdue" value={currency(data.metrics.totalOverdue)} subtext="Requires immediate attention" />
-          <MetricTile label="Today's Collections" value={currency(data.metrics.todaysCollections)} subtext="Cleared in the last 24h" />
+          <MetricTile label="Active Customers" value={data.metrics.totalCustomers} subtext="Total registered accounts" icon={Users} colorClass="text-indigo-500" bgClass="bg-indigo-500" />
+          <MetricTile label="Total Outstanding" value={currency(data.metrics.totalOutstanding)} subtext="Across all aging buckets" icon={Wallet} colorClass="text-amber-500" bgClass="bg-amber-500" />
+          <MetricTile label="Total Overdue" value={currency(data.metrics.totalOverdue)} subtext="Requires immediate attention" icon={AlertTriangle} colorClass="text-rose-500" bgClass="bg-rose-500" />
+          <MetricTile label="Today's Collections" value={currency(data.metrics.todaysCollections)} subtext="Cleared in the last 24h" icon={TrendingUp} colorClass="text-emerald-500" bgClass="bg-emerald-500" />
         </div>
 
         {/* Row 2: Charts */}
@@ -100,11 +106,17 @@ export default function ViewerDashboard() {
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.revenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" vertical={false} />
                   <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dy={10} />
                   <YAxis tickFormatter={(v) => `${Math.round(v / 100000)}L`} stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.05)' }} />
-                  <Bar dataKey="collections" fill="#334155" radius={[4, 4, 0, 0]} animationDuration={1500} />
+                  <Bar dataKey="collections" fill="url(#barGrad)" radius={[4, 4, 0, 0]} animationDuration={1500} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
