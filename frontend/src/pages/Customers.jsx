@@ -10,10 +10,12 @@ import { KpiCard } from '../components/KpiCard';
 import { customers as seed } from '../data/mockData';
 import { currency } from '../lib/format';
 import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const empty = { company_name: '', contact_name: '', email: '', phone: '', credit_limit: 0, payment_terms: 30, status: 'active', outstanding: 0 };
 
 export default function Customers() {
+  const { user } = useAuth();
   const [rows, setRows] = useState(seed);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
@@ -72,7 +74,9 @@ export default function Customers() {
           <h1 className="text-2xl font-bold">Customers</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Manage B2B credit accounts, limits, payment terms, and status.</p>
         </div>
-        <RippleButton className="primary-btn" onClick={() => setEditing({ ...empty })}><Plus size={17} /> Add customer</RippleButton>
+        {user?.role !== 'viewer' && (
+          <RippleButton className="primary-btn" onClick={() => setEditing({ ...empty })}><Plus size={17} /> Add customer</RippleButton>
+        )}
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -107,7 +111,7 @@ export default function Customers() {
           { key: 'credit_limit', label: 'Credit Limit', render: (row) => <span className="font-medium">{currency(row.credit_limit)}</span> },
           { key: 'outstanding', label: 'Outstanding', render: (row) => <span className={row.outstanding > 0 ? 'font-medium text-amber-600 dark:text-amber-400' : ''}>{currency(row.outstanding)}</span> },
           { key: 'status', label: 'Status', render: (row) => renderStatus(row.status) },
-          { key: 'actions', label: 'Actions', render: (row) => <div className="flex gap-2"><motion.button whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }} className="icon-btn hover:text-brand-600 dark:hover:text-brand-400" onClick={() => setEditing(row)} title="Edit"><Edit size={16} /></motion.button><motion.button whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }} className="icon-btn hover:text-rose-500 dark:hover:text-rose-400" onClick={() => { setRows((items) => items.filter((item) => item.id !== row.id)); api.delete(`/customers/${row.id}`).then(fetchCustomers); }} title="Delete"><Trash2 size={16} /></motion.button></div> }
+          ...(user?.role !== 'viewer' ? [{ key: 'actions', label: 'Actions', render: (row) => <div className="flex gap-2"><motion.button whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.9 }} className="icon-btn hover:text-brand-600 dark:hover:text-brand-400" onClick={() => setEditing(row)} title="Edit"><Edit size={16} /></motion.button><motion.button whileHover={{ scale: 1.1, rotate: -5 }} whileTap={{ scale: 0.9 }} className="icon-btn hover:text-rose-500 dark:hover:text-rose-400" onClick={() => { setRows((items) => items.filter((item) => item.id !== row.id)); api.delete(`/customers/${row.id}`).then(fetchCustomers); }} title="Delete"><Trash2 size={16} /></motion.button></div> }] : [])
         ]} />
         <div className="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span>Showing {paged.length} of {filtered.length}</span>
