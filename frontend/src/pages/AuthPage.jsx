@@ -64,7 +64,7 @@ export default function AuthPage() {
       } finally {
         setLoading(false);
       }
-    } else {
+    } else if (currentMode === 'register') {
       try {
         const [firstName, ...lastNameParts] = regName.split(' ');
         const lastName = lastNameParts.join(' ') || ' ';
