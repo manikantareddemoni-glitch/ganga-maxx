@@ -12,7 +12,22 @@ const router = Router();
 
 // Helpers
 function generateOTP() {
+  if (!process.env.SMTP_USER) return '123456';
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+}
+
+async function sendEmail(to, subject, text) {
+  if (!process.env.SMTP_USER) {
+    console.log(`[MOCK EMAIL] To: ${to} | Subject: ${subject} | Body: ${text}`);
+    return;
+  }
+  const transporter = (await import('nodemailer')).default.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  });
+  await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, text });
 }
 
 async function checkLockout(user) {
@@ -265,6 +280,7 @@ router.post('/register/step1', async (req, res, next) => {
     }
 
     console.log(`[MOCK EMAIL] Verification code for ${body.email} is: ${emailOtp}`);
+    await sendEmail(body.email, 'Ganga Maxx Verification Code', `Your registration code is: ${emailOtp}`);
 
     res.json({
       registrationPending: true,
@@ -404,6 +420,48 @@ router.post('/resend-otp', async (req, res, next) => {
     res.json({ message: 'OTPs resent successfully.' });
   } catch(e) {
     next(e);
+  }
+});
+
+// ---------------------------------------------------------
+// Forgot Password & Reset Password
+// ---------------------------------------------------------
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const [user] = await query('SELECT * FROM users WHERE email = ? AND status = "active"', [email]);
+    if (!user) {
+      // Return 200 even if user not found to prevent email enumeration
+      return res.json({ message: 'If an account exists, a reset code has been sent.' });
+    }
+    const resetCode = generateOTP();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    await query('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?', [resetCode, expiry, user.id]);
+    await sendEmail(email, 'Ganga Maxx Password Reset', `Your password reset code is: ${resetCode}`);
+    res.json({ message: 'If an account exists, a reset code has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { email, resetCode, newPassword } = req.body;
+    if (!email || !resetCode || !newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'Invalid request data.' });
+    }
+    const [user] = await query('SELECT * FROM users WHERE email = ? AND status = "active"', [email]);
+    if (!user) return res.status(400).json({ message: 'Invalid or expired code.' });
+    
+    if (user.reset_token !== resetCode || new Date() > new Date(user.reset_token_expiry)) {
+      return res.status(400).json({ message: 'Invalid or expired code.' });
+    }
+    
+    const hash = await bcrypt.hash(newPassword, 10);
+    await query('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?', [hash, user.id]);
+    res.json({ message: 'Password has been successfully reset. You can now login.' });
+  } catch (error) {
+    next(error);
   }
 });
 

@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [regMobile, setRegMobile] = useState('');
   const [regRole, setRegRole] = useState('');
   const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [registeredUserId, setRegisteredUserId] = useState(null);
   
   const { login } = useAuth();
@@ -82,6 +83,29 @@ export default function AuthPage() {
         setCurrentMode('verify');
       } catch (err) {
         addToast(err.response?.data?.message || 'Failed to register', 'error');
+      } finally {
+        setLoading(false);
+      }
+    } else if (currentMode === 'forgot-password') {
+      try {
+        await api.post('/auth/forgot-password', { email });
+        addToast('If an account exists, a reset code has been sent.', 'success');
+        setCurrentMode('reset-password');
+      } catch (err) {
+        addToast(err.response?.data?.message || 'Failed to request reset', 'error');
+      } finally {
+        setLoading(false);
+      }
+    } else if (currentMode === 'reset-password') {
+      try {
+        await api.post('/auth/reset-password', { email, resetCode: otp, newPassword });
+        addToast('Password reset successful. You can now login.', 'success');
+        setCurrentMode('login');
+        setPassword('');
+        setNewPassword('');
+        setOtp('');
+      } catch (err) {
+        addToast(err.response?.data?.message || 'Failed to reset password', 'error');
       } finally {
         setLoading(false);
       }
@@ -186,6 +210,66 @@ export default function AuthPage() {
                     Please check your email console for the code.
                   </p>
                 </motion.div>
+              ) : currentMode === 'reset-password' ? (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-5 overflow-hidden"
+                >
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Reset Code</label>
+                    <input 
+                      required 
+                      type="text" 
+                      placeholder="123456" 
+                      maxLength={6}
+                      className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm tracking-widest text-center font-mono" 
+                      value={otp} 
+                      onChange={e => setOtp(e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">New Password</label>
+                    <div className="relative">
+                      <input 
+                        required
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm" 
+                        value={newPassword} 
+                        onChange={e => setNewPassword(e.target.value)} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPassword(!showPassword)} 
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : currentMode === 'forgot-password' ? (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-5 overflow-hidden"
+                >
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Work Email</label>
+                    <input 
+                      required 
+                      type="email" 
+                      placeholder="name@company.com" 
+                      className="w-full h-11 px-4 rounded-lg bg-[#111827] border border-slate-700 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                    />
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <button type="button" onClick={() => setCurrentMode('login')} className="text-amber-500 hover:underline">Back to Login</button>
+                  </div>
+                </motion.div>
               ) : (
                 <>
                   {/* Common Email Field */}
@@ -256,8 +340,16 @@ export default function AuthPage() {
               )}
 
               {/* Password Field */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Password</label>
+              {currentMode !== 'forgot-password' && (
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-400">Password</label>
+                    {currentMode === 'login' && (
+                      <button type="button" onClick={() => setCurrentMode('forgot-password')} className="text-xs text-amber-500 hover:underline">
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
                 <div className="relative">
                   <input 
                     required
@@ -275,7 +367,7 @@ export default function AuthPage() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-              </div>
+              )}
               
               {/* Remember Me */}
               {currentMode === 'login' && (
@@ -296,7 +388,7 @@ export default function AuthPage() {
               )}
 
               <button 
-                disabled={loading || (currentMode === 'verify' ? !otp : (!email || !password))} 
+                disabled={loading || (currentMode === 'verify' ? !otp : currentMode === 'reset-password' ? (!otp || !newPassword) : currentMode === 'forgot-password' ? !email : (!email || !password))} 
                 type="submit" 
                 className="w-full h-11 mt-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -313,6 +405,10 @@ export default function AuthPage() {
                     <>Sign In <LogIn size={16} /></>
                   ) : currentMode === 'verify' ? (
                     <>Verify Code <Sparkles size={16} /></>
+                  ) : currentMode === 'reset-password' ? (
+                    <>Reset Password <Sparkles size={16} /></>
+                  ) : currentMode === 'forgot-password' ? (
+                    <>Send Reset Code <Send size={16} /></>
                   ) : (
                     <>Request Access <UserPlus size={16} /></>
                   )
