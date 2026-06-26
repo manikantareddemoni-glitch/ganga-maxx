@@ -24,7 +24,7 @@ export default function Customers() {
   const pageSize = 4;
 
   const fetchCustomers = () => {
-    api.get('/customers?limit=1000').then(res => {
+    api.get(`/customers?limit=1000&t=${Date.now()}`).then(res => {
       if (res.data && res.data.data) setRows(res.data.data);
     }).catch(console.error);
   };
@@ -48,11 +48,13 @@ export default function Customers() {
   async function save() {
     try {
       if (editing.id) {
-        await api.put(`/customers/${editing.id}`, editing);
+        const { data: updatedCustomer } = await api.put(`/customers/${editing.id}`, editing);
+        setRows(prev => prev.map(r => r.id === editing.id ? updatedCustomer : r));
       } else {
-        await api.post('/customers', editing);
+        const { data: newCustomer } = await api.post('/customers', editing);
+        setRows(prev => [newCustomer, ...prev]);
       }
-      fetchCustomers();
+      fetchCustomers(); // Still fetch to ensure consistency, but UI updates instantly
       setEditing(null);
     } catch (e) {
       console.error(e);

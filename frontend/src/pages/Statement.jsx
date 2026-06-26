@@ -118,8 +118,7 @@ export default function Statement() {
           </div>
 
           <div className="mt-8 flex flex-col items-center justify-center border-t border-dashed border-slate-200 pt-8 text-center dark:border-white/10">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Please make checks payable to <strong>Ganga Maxx Credit Ltd.</strong></p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">IFSC: HDFC0001234 | A/C: 50200012345678</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400"><strong>Ganga Maxx</strong></p>
           </div>
         </div>
       </motion.section>

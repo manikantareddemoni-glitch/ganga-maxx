@@ -52,7 +52,7 @@ describe('CUSTOMER MANAGEMENT MODULE', () => {
       body: JSON.stringify({
         company_name: 'Duplicate LLC',
         contact_name: 'Jane Test',
-        email: 'ramesh@balajitraders.in', // Existing email from seed
+        email: 'contact@metrofresh.in', // Existing email from seed
         phone: '0987654321',
         credit_limit: 100000,
         payment_terms: 15,

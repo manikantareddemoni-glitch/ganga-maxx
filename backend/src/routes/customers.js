@@ -6,10 +6,10 @@ import { emitEvent } from '../socket/index.js';
 const router = Router();
 
 const customerSchema = z.object({
-  company_name: z.string().min(2),
-  contact_name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(7),
+  company_name: z.string().min(2, 'Company name must be at least 2 characters'),
+  contact_name: z.string().optional().or(z.literal('')),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
   credit_limit: z.number().nonnegative(),
   payment_terms: z.number().int().positive(),
   status: z.enum(['active', 'paused', 'blocked']).default('active')
@@ -50,7 +50,7 @@ router.post('/', async (req, res, next) => {
     const result = await query(
       `INSERT INTO customers (company_name, contact_name, email, phone, status)
        VALUES (?, ?, ?, ?, ?)`,
-      [body.company_name, body.contact_name, body.email, body.phone, body.status]
+      [body.company_name, body.contact_name || null, body.email || null, body.phone || null, body.status]
     );
     await query(
       `INSERT INTO credit_accounts (customer_id, credit_limit) VALUES (?, ?)`,
@@ -79,7 +79,7 @@ router.put('/:id', async (req, res, next) => {
     if (fields.length) {
       await query(
         `UPDATE customers SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`,
-        [...fields.map((field) => customerFields[field]), req.params.id]
+        [...fields.map((field) => customerFields[field] === '' ? null : customerFields[field]), req.params.id]
       );
     }
     if (credit_limit !== undefined) {
