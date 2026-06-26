@@ -46,9 +46,15 @@ export async function getDashboardOverview() {
     SELECT bucket, SUM(balance) AS value
     FROM aging_reports
     GROUP BY bucket
-    ORDER BY CASE bucket WHEN 'Current' THEN 1 WHEN '0-30 Days' THEN 2 WHEN '31-60 Days' THEN 3 WHEN '61-90 Days' THEN 4 WHEN '90+ Days' THEN 5 ELSE 6 END
   `);
-  const aging = agingData.map(item => ({ ...item, value: Number(item.value) }));
+  const bucketOrder = ['Current', '0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'];
+  const aging = bucketOrder.map(bucket => {
+    const found = agingData.find(item => item.bucket === bucket);
+    return {
+      bucket,
+      value: found ? Number(found.value) : 0
+    };
+  });
 
   const activitiesRaw = await query(`
     SELECT id, type, title, message, created_at AS createdAt
