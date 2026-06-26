@@ -29,7 +29,7 @@ router.get('/', async (req, res, next) => {
        LEFT JOIN credit_accounts ca ON ca.customer_id = c.id
        LEFT JOIN invoices i ON i.customer_id = c.id AND i.status IN ('open', 'overdue', 'partial')
        WHERE (c.company_name LIKE ? OR c.contact_name LIKE ? OR c.email LIKE ?) AND c.status LIKE ?
-       GROUP BY c.id
+       GROUP BY c.id, ca.credit_limit
        ORDER BY c.created_at DESC
        LIMIT ${limit} OFFSET ${offset}`,
       [search, search, search, status]
