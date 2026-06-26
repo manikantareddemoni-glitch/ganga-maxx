@@ -1,7 +1,7 @@
 import { query } from '../config/db.js';
 
 export async function getDashboardOverview() {
-  const [metrics] = await query(`
+  const [rawMetrics] = await query(`
     SELECT
       (SELECT COUNT(*) FROM customers) AS totalCustomers,
       (SELECT COALESCE(SUM(total_amount - paid_amount), 0) FROM invoices WHERE status IN ('open', 'overdue', 'partial')) AS totalOutstanding,
@@ -9,6 +9,14 @@ export async function getDashboardOverview() {
       (SELECT COUNT(*) FROM invoices WHERE status IN ('open', 'overdue', 'partial')) AS pendingInvoices,
       (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payment_date::date = CURRENT_DATE) AS todaysCollections
   `);
+
+  const metrics = {
+    totalCustomers: Number(rawMetrics.totalCustomers || rawMetrics.totalcustomers || 0),
+    totalOutstanding: Number(rawMetrics.totalOutstanding || rawMetrics.totaloutstanding || 0),
+    totalOverdue: Number(rawMetrics.totalOverdue || rawMetrics.totaloverdue || 0),
+    pendingInvoices: Number(rawMetrics.pendingInvoices || rawMetrics.pendinginvoices || 0),
+    todaysCollections: Number(rawMetrics.todaysCollections || rawMetrics.todayscollections || 0)
+  };
 
   const revenueData = await query(`
     SELECT TO_CHAR(payment_date, 'Mon') AS month, SUM(amount) AS collections
@@ -42,13 +50,14 @@ export async function getDashboardOverview() {
   `);
   const aging = agingData.map(item => ({ ...item, value: Number(item.value) }));
 
-  const activities = await query(`
+  const activitiesRaw = await query(`
     SELECT id, type, title, message, created_at AS createdAt
     FROM notifications
     WHERE type != 'customer'
     ORDER BY created_at DESC
     LIMIT 8
   `);
+  const activities = activitiesRaw.map(item => ({...item, createdAt: item.createdAt || item.createdat}));
 
   const collectionActionsRaw = await query(`
     SELECT
