@@ -68,3 +68,38 @@ export async function triggerBackendAction(action, payload = {}) {
     return null;
   }
 }
+
+// In-memory cache to eliminate loading delays when navigating between pages
+const cache = new Map();
+
+const originalGet = api.get;
+api.get = async (url, config) => {
+  // Strip timestamps from URL to ensure cache hits
+  const cacheKey = url.replace(/&t=\d+/, '').replace(/\?t=\d+/, '');
+  
+  if (cache.has(cacheKey)) {
+    const cached = cache.get(cacheKey);
+    if (Date.now() - cached.time < 5 * 60 * 1000) { // 5 min TTL
+      // Fetch fresh in background to silently update cache, but return instant cached response
+      originalGet(url, config).then(res => cache.set(cacheKey, { data: res.data, time: Date.now() })).catch(() => {});
+      return Promise.resolve({ data: cached.data, status: 200 });
+    }
+  }
+  
+  const response = await originalGet(url, config);
+  cache.set(cacheKey, { data: response.data, time: Date.now() });
+  return response;
+};
+
+// Clear cache on any data mutations to keep UI perfectly in sync
+const clearCache = () => cache.clear();
+
+const originalPost = api.post;
+api.post = async (...args) => { clearCache(); return originalPost(...args); };
+
+const originalPut = api.put;
+api.put = async (...args) => { clearCache(); return originalPut(...args); };
+
+const originalDelete = api.delete;
+api.delete = async (...args) => { clearCache(); return originalDelete(...args); };
+
