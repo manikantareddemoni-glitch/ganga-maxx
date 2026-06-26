@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Edit, Plus, Search, Trash2, Users, CheckCircle, PauseCircle, Ban } from 'lucide-react';
+import { Edit, Plus, Search, Trash2, Users, CheckCircle, PauseCircle, Ban, Building2, User, Mail, Phone, IndianRupee, Calendar, Activity, Save } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
@@ -123,22 +123,86 @@ export default function Customers() {
           </div>
         </div>
       </motion.section>
-      <Modal open={Boolean(editing)} title={editing?.id ? 'Edit customer' : 'Add customer'} onClose={() => setEditing(null)}>
-        {editing && <div className="grid gap-3 md:grid-cols-2">
-          {['company_name', 'contact_name', 'email', 'phone'].map((field) => <input key={field} className="input" placeholder={field.replace('_', ' ')} value={editing[field]} onChange={(e) => setEditing({ ...editing, [field]: e.target.value })} />)}
-          <input className="input" type="number" placeholder="Credit limit" value={editing.credit_limit} onChange={(e) => setEditing({ ...editing, credit_limit: Number(e.target.value) })} />
-          <input className="input" type="number" placeholder="Payment terms" value={editing.payment_terms} onChange={(e) => setEditing({ ...editing, payment_terms: Number(e.target.value) })} />
-          <Select
-            className="md:col-span-2"
-            value={editing.status}
-            onChange={(val) => setEditing({ ...editing, status: val })}
-            options={[
-              { value: 'active', label: 'Active' },
-              { value: 'paused', label: 'Paused' },
-              { value: 'blocked', label: 'Blocked' }
-            ]}
-          />
-          <RippleButton className="primary-btn md:col-span-2" onClick={save}>Save customer</RippleButton>
+      <Modal open={Boolean(editing)} title={editing?.id ? 'Edit Customer Details' : 'Add New Customer'} onClose={() => setEditing(null)}>
+        {editing && <div className="mt-4 flex flex-col gap-6">
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-white/10 pb-2">Business Information</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Company Name</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input className="input w-full pl-9 focus:border-brand-500 focus:ring-brand-500/20" placeholder="e.g. Acme Corp" value={editing.company_name} onChange={(e) => setEditing({ ...editing, company_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Contact Person</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input className="input w-full pl-9 focus:border-brand-500 focus:ring-brand-500/20" placeholder="e.g. John Doe" value={editing.contact_name} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input className="input w-full pl-9 focus:border-brand-500 focus:ring-brand-500/20" type="email" placeholder="contact@company.com" value={editing.email} onChange={(e) => setEditing({ ...editing, email: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input className="input w-full pl-9 focus:border-brand-500 focus:ring-brand-500/20" placeholder="+1 (555) 000-0000" value={editing.phone} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-white/10 pb-2">Credit & Account</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Credit Limit (₹)</label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500" size={16} />
+                  <input className="input w-full pl-9 focus:border-amber-500 focus:ring-amber-500/20" type="number" placeholder="0.00" value={editing.credit_limit} onChange={(e) => setEditing({ ...editing, credit_limit: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Payment Terms (Days)</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500" size={16} />
+                  <input className="input w-full pl-9 focus:border-sky-500 focus:ring-sky-500/20" type="number" placeholder="30" value={editing.payment_terms} onChange={(e) => setEditing({ ...editing, payment_terms: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Account Status</label>
+                <div className="relative">
+                  <Activity className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 ${editing.status === 'active' ? 'text-emerald-500' : editing.status === 'paused' ? 'text-amber-500' : 'text-rose-500'}`} size={16} />
+                  <Select
+                    className="w-full pl-9 font-medium"
+                    value={editing.status}
+                    onChange={(val) => setEditing({ ...editing, status: val })}
+                    options={[
+                      { value: 'active', label: 'Active - Fully Operational' },
+                      { value: 'paused', label: 'Paused - Temporarily Suspended' },
+                      { value: 'blocked', label: 'Blocked - No Credit Allowed' }
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <RippleButton 
+            className="w-full relative overflow-hidden rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 px-4 py-3 font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-brand-500/25 active:scale-[0.98] mt-2 flex items-center justify-center gap-2" 
+            onClick={save}
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-[length:250%_250%] animate-shimmer" />
+            <Save size={18} />
+            {editing.id ? 'Save Changes' : 'Create Customer'}
+          </RippleButton>
         </div>}
       </Modal>
     </PageTransition>
