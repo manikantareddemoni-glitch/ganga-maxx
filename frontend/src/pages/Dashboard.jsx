@@ -92,10 +92,19 @@ const AnimatedCardBackground = ({ blob1, blob2, blob3, type }) => (
   </div>
 );
 const colors = ['#4F46E5', '#0EA5E9', '#10B981', '#F59E0B', '#F43F5E'];
+
+const bucketColors = {
+  'Current': '#6366f1',
+  '0-30 Days': '#22d3ee',
+  '31-60 Days': '#10b981',
+  '61-90 Days': '#f59e0b',
+  '90+ Days': '#fb7185'
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0];
-    const color = data.payload?.dotColor || data.color || data.payload?.fill || '#6366f1';
+    const color = data.payload?.dotColor || data.payload?.fill || data.color || '#6366f1';
     const name = data.name === 'value' || data.name === 'amount' ? (label || data.name) : data.name;
     return (
       <div className="rounded-xl border-0 bg-white px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,.18)] dark:bg-slate-800">
@@ -147,7 +156,16 @@ export default function Dashboard() {
   const revenueSlice = trendPeriod === 'Last 6 Months' ? rawRevenue.slice(-6) : rawRevenue.slice(0, 6);
   const revenue = revenueSlice.map((item, index) => ({ ...item, dotColor: colors[index % colors.length] }));
   const rawAging = data.aging?.length ? data.aging : mock.aging;
-  const aging = rawAging.map((item, index) => ({ ...item, fill: colors[index % colors.length] }));
+  
+  // Filter out 0-value buckets so they don't show up as awkward blank holes in the charts
+  const agingChartData = rawAging.filter(item => item.value > 0).map(item => ({ 
+    ...item, 
+    fill: bucketColors[item.bucket] || colors[0]
+  }));
+  
+  // Filter out "Current" from Overdue chart
+  const overdueChartData = agingChartData.filter(item => item.bucket !== 'Current');
+
   const activities = data.activities?.length ? data.activities : mock.activities;
   const collectionActions = data.collectionActions?.length ? data.collectionActions : [];
 
@@ -223,15 +241,15 @@ export default function Dashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={aging} dataKey="value" nameKey="bucket" innerRadius={58} outerRadius={92} paddingAngle={4} animationDuration={1100}>
-                  {aging.map((entry, index) => <Cell key={entry.bucket} fill={colors[index % colors.length]} className="transition-all duration-300 hover:opacity-80 cursor-pointer" />)}
+                <Pie data={agingChartData} dataKey="value" nameKey="bucket" innerRadius={58} outerRadius={92} paddingAngle={4} animationDuration={1100}>
+                  {agingChartData.map((entry) => <Cell key={entry.bucket} fill={entry.fill} className="transition-all duration-300 hover:opacity-80 cursor-pointer" />)}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(148,163,184,0.05)'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="space-y-2">
-            {aging.map((item, index) => <div className="flex items-center justify-between text-sm" key={item.bucket}><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: colors[index] }} />{item.bucket}</span><span className="font-semibold">{currency(item.value)}</span></div>)}
+            {agingChartData.map((item) => <div className="flex items-center justify-between text-sm" key={item.bucket}><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: item.fill }} />{item.bucket}</span><span className="font-semibold">{currency(item.value)}</span></div>)}
           </div>
         </motion.section>
       </div>
@@ -241,12 +259,12 @@ export default function Dashboard() {
           <h2 className="mb-5 text-lg font-bold">Overdue Buckets</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={aging}>
+              <BarChart data={overdueChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.22)" />
                 <XAxis dataKey="bucket" stroke="#94a3b8" />
                 <YAxis tickFormatter={(v) => `${Math.round(v / 100000)}L`} stroke="#94a3b8" />
                 <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(148,163,184,0.05)'}} />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1500} animationEasing="ease-out">{aging.map((item, index) => <Cell key={item.bucket} fill={colors[index]} className="transition-all duration-300 hover:opacity-80 cursor-pointer" />)}</Bar>
+                <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1500} animationEasing="ease-out">{overdueChartData.map((item) => <Cell key={item.bucket} fill={item.fill} className="transition-all duration-300 hover:opacity-80 cursor-pointer" />)}</Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
